@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NAV SQL Trace Formatter</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <p class="eyebrow">Single-Page Utility</p>
+        <h1>NAV Trace SQL Formatter</h1>
+        <p>
+          Paste a trace SQL statement and matching <code>exec sp_execute</code> line.
+          The app prefers <code>DECLARE</code> output with inferred SQL types and
+          automatically falls back to inline replacement when confidence is low.
+        </p>
+      </header>
+
+      <section class="workspace" aria-label="SQL formatter inputs and output">
+        <div class="panel">
+          <label for="sqlInput">SQL Statement</label>
+          <textarea
+            id="sqlInput"
+            spellcheck="false"
+            placeholder="Paste SQL from trace here"
+          ></textarea>
+        </div>
+
+        <div class="panel">
+          <label for="execInput">EXEC Statement</label>
+          <textarea
+            id="execInput"
+            spellcheck="false"
+            placeholder="Paste exec sp_execute ... here"
+          ></textarea>
+        </div>
+
+        <div class="actions" role="group" aria-label="Actions">
+          <button id="generateBtn" type="button">Generate</button>
+          <button id="copyBtn" type="button" class="secondary">Copy Output</button>
+          <button id="clearBtn" type="button" class="tertiary">Clear</button>
+          <span id="modeBadge" class="mode-badge" aria-live="polite">MODE: -</span>
+        </div>
+
+        <div class="panel output-panel">
+          <label for="outputSql">Generated SQL</label>
+          <textarea id="outputSql" readonly spellcheck="false"></textarea>
+        </div>
+
+        <aside id="warnings" class="warnings" aria-live="polite">
+          <p>No warnings.</p>
+        </aside>
+      </section>
+    </main>
+
+    <script src="vendor/sql-formatter.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
