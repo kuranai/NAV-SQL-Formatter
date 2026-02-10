@@ -42,14 +42,6 @@ body {
   backdrop-filter: blur(6px);
 }
 
-.eyebrow {
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.75rem;
-  color: var(--brand-strong);
-}
-
 .hero h1 {
   margin: 0.3rem 0 0.7rem;
   font-family: "Sora", "Trebuchet MS", sans-serif;
@@ -183,7 +175,7 @@ button.tertiary {
   padding-left: 1.2rem;
 }
 
-.warnings li + li {
+.warnings li+li {
   margin-top: 0.35rem;
 }
 
