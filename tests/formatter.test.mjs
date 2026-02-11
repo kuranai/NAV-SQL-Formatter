@@ -139,6 +139,16 @@ test("duplicate assignments keep the last value", () => {
   assert.ok(result.warnings.some((warning) => warning.includes("Duplicate assignment for @0")));
 });
 
+test("generate removes input line breaks before formatting", () => {
+  const sql = "SELECT\n@0 AS Value\nFROM\nMyTable";
+  const exec = "exec sp_execute 71,\n@0=1";
+
+  const result = generate(sql, exec, { formatter: passthroughFormatter });
+
+  assert.equal(result.mode, "declare");
+  assert.match(result.outputSql, /^DECLARE @0 int = 1;\n\nSELECT @0 AS Value FROM MyTable$/);
+});
+
 test("formatter failures fall back to unformatted output with warning", () => {
   const failingFormatter = {
     format() {

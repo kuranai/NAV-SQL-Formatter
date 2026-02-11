@@ -46,6 +46,10 @@
     return Array.from(new Set(items.filter(Boolean)));
   }
 
+  function normalizeLineBreaks(text) {
+    return text.replace(/\r\n?/g, "\n").replace(/\n/g, " ");
+  }
+
   function consumeSingleQuoted(text, startIndex) {
     let i = startIndex + 1;
     while (i < text.length) {
@@ -498,8 +502,8 @@
    * @returns {GenerationResult}
    */
   function generate(sqlText, execText, options) {
-    const safeSql = typeof sqlText === "string" ? sqlText : "";
-    const safeExec = typeof execText === "string" ? execText : "";
+    const safeSql = typeof sqlText === "string" ? normalizeLineBreaks(sqlText) : "";
+    const safeExec = typeof execText === "string" ? normalizeLineBreaks(execText) : "";
     const warnings = [];
 
     const parseResult = parseExecStatement(safeExec);

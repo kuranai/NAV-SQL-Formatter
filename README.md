@@ -6,6 +6,7 @@ Single-page web app for SQL Server trace output from Dynamics NAV/Business Centr
 
 - Accepts a trace SQL statement containing placeholders like `@0`, `@1`, `@12`.
 - Accepts a matching `exec sp_execute ...` statement containing parameter values.
+- Normalizes pasted SQL/EXEC line breaks to spaces before parsing and formatting.
 - Produces formatted SQL with a single `DECLARE` statement at the top.
 - Uses inferred SQL types when confidence is high.
 - Falls back to `sql_variant` for uncertain or missing values:
