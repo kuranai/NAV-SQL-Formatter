@@ -14,8 +14,8 @@
       <h1>NAV Trace SQL Formatter</h1>
       <p>
         Paste a trace SQL statement and matching <code>exec sp_execute</code> line.
-        The app prefers <code>DECLARE</code> output with inferred SQL types and
-        automatically falls back to inline replacement when confidence is low.
+        The app always generates <code>DECLARE</code> output with inferred SQL types,
+        and falls back to <code>sql_variant</code> declarations when inference is uncertain.
       </p>
     </header>
 
@@ -34,7 +34,6 @@
         <button id="generateBtn" type="button">Generate</button>
         <button id="copyBtn" type="button" class="secondary">Copy Output</button>
         <button id="clearBtn" type="button" class="tertiary">Clear</button>
-        <span id="modeBadge" class="mode-badge" aria-live="polite">MODE: -</span>
       </div>
 
       <div class="panel output-panel">

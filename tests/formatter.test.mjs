@@ -87,27 +87,30 @@ test("generate sorts numeric placeholders ascending in DECLARE mode", () => {
   assert.ok(idx0 < idx1 && idx1 < idx2 && idx2 < idx10);
 });
 
-test("generate falls back to inline mode when a used parameter is unknown", () => {
+test("generate uses sql_variant assignment when a used parameter type is unknown", () => {
   const sql = "SELECT @0 AS A, @1 AS B";
   const exec = "exec sp_execute 71,@0=7,@1=NULL";
 
   const result = generate(sql, exec, { formatter: passthroughFormatter });
 
-  assert.equal(result.mode, "inline");
-  assert.equal(result.outputSql, "SELECT 7 AS A, NULL AS B");
+  assert.equal(result.mode, "declare");
+  assert.match(result.outputSql, /DECLARE @0 int = 7,\n\s*@1 sql_variant = NULL;/);
+  assert.match(result.outputSql, /SELECT @0 AS A, @1 AS B/);
   assert.ok(result.warnings.some((warning) => warning.includes("Type inference is not confident for @1")));
+  assert.ok(result.warnings.some((warning) => warning.includes("using sql_variant")));
 });
 
-test("generate leaves missing placeholders unchanged in inline mode", () => {
+test("generate declares missing placeholders as uninitialized sql_variant", () => {
   const sql = "SELECT @0 AS A, @2 AS Missing";
   const exec = "exec sp_execute 71,@0=7,@1=8";
 
   const result = generate(sql, exec, { formatter: passthroughFormatter });
 
-  assert.equal(result.mode, "inline");
-  assert.equal(result.outputSql, "SELECT 7 AS A, @2 AS Missing");
+  assert.equal(result.mode, "declare");
+  assert.match(result.outputSql, /DECLARE @0 int = 7,\n\s*@2 sql_variant;/);
+  assert.match(result.outputSql, /SELECT @0 AS A, @2 AS Missing/);
   assert.ok(result.warnings.some((warning) => warning.includes("Missing value for @2")));
-  assert.ok(result.warnings.some((warning) => warning.includes("Unresolved placeholder @2")));
+  assert.ok(result.warnings.some((warning) => warning.includes("uninitialized sql_variant")));
 });
 
 test("replaceSqlParameters does not replace placeholders inside strings or comments", () => {

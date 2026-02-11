@@ -24,7 +24,7 @@
 
   /**
    * @typedef {Object} GenerationResult
-   * @property {"declare" | "inline"} mode
+   * @property {"declare"} mode
    * @property {string} outputSql
    * @property {string[]} warnings
    * @property {ParsedParam[]} params
@@ -510,25 +510,24 @@
       return item.key;
     }));
 
-    let canDeclare = sqlParams.length > 0;
-
     for (const sqlParam of sqlParams) {
       const parsed = parseResult.params.get(sqlParam.key);
       if (!parsed) {
-        warnings.push(`Missing value for ${sqlParam.name} in EXEC statement.`);
-        canDeclare = false;
+        warnings.push(
+          `Missing value for ${sqlParam.name} in EXEC statement; declaring as uninitialized sql_variant.`,
+        );
         continue;
       }
 
       if (!parsed.normalizedLiteral) {
-        warnings.push(`No literal value was parsed for ${sqlParam.name}.`);
-        canDeclare = false;
+        warnings.push(
+          `No literal value was parsed for ${sqlParam.name}; declaring as uninitialized sql_variant.`,
+        );
       }
 
       if (!parsed.confidence || !parsed.inferredType) {
         const detail = parsed.parseError ? ` (${parsed.parseError})` : "";
-        warnings.push(`Type inference is not confident for ${sqlParam.name}${detail}.`);
-        canDeclare = false;
+        warnings.push(`Type inference is not confident for ${sqlParam.name}${detail}; using sql_variant.`);
       }
     }
 
@@ -538,32 +537,25 @@
       }
     }
 
-    let mode = "inline";
+    const mode = "declare";
     let outputSql = safeSql;
 
-    if (canDeclare) {
-      mode = "declare";
+    if (sqlParams.length > 0) {
       const declareParams = sortSqlParamsForDeclare(sqlParams);
       const declarations = declareParams.map(function declaration(sqlParam) {
         const parsed = parseResult.params.get(sqlParam.key);
+
+        if (!parsed || !parsed.normalizedLiteral) {
+          return `${sqlParam.name} sql_variant`;
+        }
+
+        if (!parsed.confidence || !parsed.inferredType) {
+          return `${sqlParam.name} sql_variant = ${parsed.normalizedLiteral}`;
+        }
+
         return `${sqlParam.name} ${parsed.inferredType} = ${parsed.normalizedLiteral}`;
       });
       outputSql = `DECLARE ${declarations.join(",\n        ")};\n\n${safeSql.trim()}`;
-    } else {
-      outputSql = replaceSqlParameters(safeSql, parseResult.params);
-      for (const sqlParam of sqlParams) {
-        const parsed = parseResult.params.get(sqlParam.key);
-        if (!parsed) {
-          warnings.push(`Unresolved placeholder ${sqlParam.name} was left unchanged.`);
-          continue;
-        }
-
-        if (!parsed.normalizedLiteral) {
-          warnings.push(`Placeholder ${sqlParam.name} was left unchanged due to missing literal.`);
-        } else if (parsed.parseError) {
-          warnings.push(`Used best-effort value for ${sqlParam.name}: ${parsed.parseError}`);
-        }
-      }
     }
 
     const formattedOutput = applyFormatting(
@@ -644,12 +636,6 @@
     warningsElement.appendChild(list);
   }
 
-  function setModeBadge(modeBadgeElement, mode) {
-    modeBadgeElement.classList.remove("declare", "inline");
-    modeBadgeElement.classList.add(mode);
-    modeBadgeElement.textContent = `MODE: ${mode.toUpperCase()}`;
-  }
-
   async function copyOutput(outputElement) {
     const text = outputElement.value || "";
     if (!text) {
@@ -679,12 +665,11 @@
     const execInput = document.getElementById("execInput");
     const outputSql = document.getElementById("outputSql");
     const warnings = document.getElementById("warnings");
-    const modeBadge = document.getElementById("modeBadge");
     const generateBtn = document.getElementById("generateBtn");
     const copyBtn = document.getElementById("copyBtn");
     const clearBtn = document.getElementById("clearBtn");
 
-    if (!sqlInput || !execInput || !outputSql || !warnings || !modeBadge) {
+    if (!sqlInput || !execInput || !outputSql || !warnings) {
       return;
     }
 
@@ -692,13 +677,11 @@
     sqlInput.value = initial.sql;
     execInput.value = initial.exec;
 
-    setModeBadge(modeBadge, "inline");
     renderWarnings(warnings, []);
 
     generateBtn.addEventListener("click", function onGenerate() {
       const result = generate(sqlInput.value, execInput.value);
       outputSql.value = result.outputSql;
-      setModeBadge(modeBadge, result.mode);
       renderWarnings(warnings, result.warnings);
       saveInputState(sqlInput.value, execInput.value);
     });
@@ -715,7 +698,6 @@
       sqlInput.value = "";
       execInput.value = "";
       outputSql.value = "";
-      setModeBadge(modeBadge, "inline");
       renderWarnings(warnings, []);
       clearInputState();
     });

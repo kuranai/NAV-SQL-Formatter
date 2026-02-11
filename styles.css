@@ -126,28 +126,6 @@ button.tertiary {
   background: #6b7280;
 }
 
-.mode-badge {
-  margin-left: auto;
-  padding: 0.3rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--edge);
-  background: #f4f7fa;
-  font: 600 0.8rem "IBM Plex Mono", monospace;
-  color: var(--muted);
-}
-
-.mode-badge.declare {
-  background: #e6faf8;
-  border-color: #87d6cf;
-  color: #0f766e;
-}
-
-.mode-badge.inline {
-  background: #fff7e8;
-  border-color: #f6d89e;
-  color: #9a5700;
-}
-
 .output-panel {
   grid-column: 1 / -1;
 }
@@ -187,10 +165,6 @@ button.tertiary {
 
   .workspace {
     grid-template-columns: 1fr;
-  }
-
-  .mode-badge {
-    margin-left: 0;
   }
 
   textarea {
