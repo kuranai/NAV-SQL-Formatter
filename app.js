@@ -46,7 +46,51 @@
     return Array.from(new Set(items.filter(Boolean)));
   }
 
-  function normalizeLineBreaks(text) {
+  function normalizeSqlLineBreaks(text) {
+    let output = "";
+    let i = 0;
+
+    while (i < text.length) {
+      const char = text[i];
+
+      if (char === "'") {
+        const end = consumeSingleQuoted(text, i);
+        output += text.slice(i, end).replace(/\r\n?|\n/g, "");
+        i = end;
+        continue;
+      }
+
+      if (char === '"') {
+        const end = consumeDoubleQuoted(text, i);
+        output += text.slice(i, end).replace(/\r\n?|\n/g, "");
+        i = end;
+        continue;
+      }
+
+      if (char === "[") {
+        const end = consumeBracketIdentifier(text, i);
+        output += text.slice(i, end).replace(/\r\n?|\n/g, "");
+        i = end;
+        continue;
+      }
+
+      if (char === "\r" || char === "\n") {
+        if (char === "\r" && text[i + 1] === "\n") {
+          i += 1;
+        }
+        output += " ";
+        i += 1;
+        continue;
+      }
+
+      output += char;
+      i += 1;
+    }
+
+    return output;
+  }
+
+  function normalizeExecLineBreaks(text) {
     return text.replace(/\r\n?/g, "\n").replace(/\n/g, " ");
   }
 
@@ -502,8 +546,8 @@
    * @returns {GenerationResult}
    */
   function generate(sqlText, execText, options) {
-    const safeSql = typeof sqlText === "string" ? normalizeLineBreaks(sqlText) : "";
-    const safeExec = typeof execText === "string" ? normalizeLineBreaks(execText) : "";
+    const safeSql = typeof sqlText === "string" ? normalizeSqlLineBreaks(sqlText) : "";
+    const safeExec = typeof execText === "string" ? normalizeExecLineBreaks(execText) : "";
     const warnings = [];
 
     const parseResult = parseExecStatement(safeExec);

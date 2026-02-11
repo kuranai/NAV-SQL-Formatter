@@ -149,6 +149,15 @@ test("generate removes input line breaks before formatting", () => {
   assert.match(result.outputSql, /^DECLARE @0 int = 1;\n\nSELECT @0 AS Value FROM MyTable$/);
 });
 
+test("generate removes line breaks inside quoted identifiers without adding spaces", () => {
+  const sql = 'select top 10 "WHSE_\nquantity key", * from "nbb ag$\nmoo blubb"';
+
+  const result = generate(sql, "", { formatter: passthroughFormatter });
+
+  assert.equal(result.mode, "declare");
+  assert.equal(result.outputSql, 'select top 10 "WHSE_quantity key", * from "nbb ag$moo blubb"');
+});
+
 test("formatter failures fall back to unformatted output with warning", () => {
   const failingFormatter = {
     format() {
